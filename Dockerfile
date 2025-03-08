@@ -18,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY . /app
 
 # Instalar dependencias de Python
-RUN pip install --no-cache-dir flask opencv-python numpy gunicorn mediapipe polars insightface
+RUN pip install --no-cache-dir flask opencv-python numpy gunicorn requests mediapipe polars insightface
 
 # Exponer el puerto 8080
 EXPOSE 8080
