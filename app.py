@@ -1,12 +1,19 @@
-
 import cv2
 import numpy as np
 import mediapipe as mp
 import polars as pl
 import math
+import requests
 from flask import Flask, request, jsonify
+import insightface
+from insightface.app import FaceAnalysis
+from io import BytesIO
 
 app = Flask(__name__)
+
+# Inicializar InsightFace para reconocimiento facial
+face_app = FaceAnalysis(providers=['CPUExecutionProvider'])  # Usar 'CUDAExecutionProvider' si hay GPU
+face_app.prepare(ctx_id=0)
 
 # Inicializar MediaPipe Face Detection
 mp_face_detection = mp.solutions.face_detection
@@ -98,7 +105,7 @@ def detect_finger():
     return jsonify({"index_finger_up": indice_levantado_solo})
 
 @app.route('/detect_location', methods=['POST'])
-def detect_nearest_location():
+def detect_location():
     data = request.get_json()
     if not data or 'lat' not in data or 'lon' not in data:
         return jsonify({"error": "Se requieren lat y lon"}), 400
@@ -121,3 +128,47 @@ def detect_nearest_location():
         "distancia_km": localidad_cercana[df.columns.index("distancia")]
     })
 
+# NUEVA RUTA PARA COMPARAR LAS CARAS
+def descargar_imagen(url):
+    """Descarga una imagen desde una URL y la convierte en un array de OpenCV."""
+    try:
+        respuesta = requests.get(url, stream=True, timeout=10)
+        if respuesta.status_code == 200:
+            img_array = np.frombuffer(respuesta.content, np.uint8)
+            return cv2.imdecode(img_array, cv2.IMREAD_COLOR)
+    except Exception as e:
+        print(f"⚠️ Error al descargar {url}: {e}")
+    return None
+
+def obtener_embedding(image):
+    """Obtiene el embedding facial de una imagen."""
+    if image is None:
+        return None
+    faces = face_app.get(image)
+    return faces[0].normed_embedding if faces else None
+
+@app.route('/compare_faces', methods=['POST'])
+def compare_faces():
+    """Compara dos caras y devuelve si son la misma persona."""
+    if 'image' not in request.files or 'url' not in request.form:
+        return jsonify({"error": "Debe enviar una imagen y una URL"}), 400
+
+    # Leer la imagen enviada como archivo
+    file = request.files['image']
+    image_np = np.frombuffer(file.read(), np.uint8)
+    image_local = cv2.imdecode(image_np, cv2.IMREAD_COLOR)
+
+    # Descargar la imagen desde la URL
+    url = request.form['url']
+    image_url = descargar_imagen(url)
+
+    # Obtener embeddings
+    emb1 = obtener_embedding(image_local)
+    emb2 = obtener_embedding(image_url)
+
+    if emb1 is None or emb2 is None:
+        return jsonify({"error": "No se pudieron detectar caras en una o ambas imágenes"}), 400
+
+    # Comparar similitud (umbral: 0.7 para considerar que es la misma persona)
+    similitud = np.dot(emb1, emb2)
+    return jsonify({"same_person": similitud >= 0.7, "similarity": round(similitud, 4)})
