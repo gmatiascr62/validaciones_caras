@@ -169,6 +169,6 @@ def compare_faces():
     if emb1 is None or emb2 is None:
         return jsonify({"error": "No se pudieron detectar caras en una o ambas imágenes"}), 400
 
-    # Comparar similitud (umbral: 0.7 para considerar que es la misma persona)
+    # Comparar similitud (umbral: 0.4 para considerar que es la misma persona)
     similitud = np.dot(emb1, emb2)
-    return jsonify({"same_person": similitud >= 0.7, "similarity": round(similitud, 4)})
+    return jsonify({"same_person": similitud >= 0.4, "similarity": round(similitud, 4)})
