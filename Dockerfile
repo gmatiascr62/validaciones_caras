@@ -5,10 +5,6 @@ WORKDIR /app
 # Instalar dependencias del sistema necesarias para OpenCV y MediaPipe
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
-    build-essential \
-    g++ \
-    python3-dev \
-    cmake \
     libglib2.0-0 \
     libjpeg-dev \
     libpng-dev \
@@ -22,7 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY . /app
 
 # Instalar dependencias de Python
-RUN pip install --no-cache-dir flask opencv-python numpy gunicorn requests onnxruntime mediapipe polars insightface Cython>=0.29.28
+RUN pip install --no-cache-dir flask opencv-python numpy gunicorn mediapipe polars
 
 # Exponer el puerto 8080
 EXPOSE 8080
