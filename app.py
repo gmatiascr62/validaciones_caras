@@ -140,5 +140,3 @@ def compare_faces():
     gc.collect()  # Liberar memoria
     return jsonify({"same_person": similarity >= 0.4, "similarity": round(similarity, 4)})
 
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8080)
