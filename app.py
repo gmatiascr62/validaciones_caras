@@ -3,7 +3,6 @@ import numpy as np
 import mediapipe as mp
 import polars as pl
 import math
-import requests
 import gc
 from flask import Flask, request, jsonify
 #from insightface.app import FaceAnalysis
