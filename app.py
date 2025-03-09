@@ -6,7 +6,7 @@ import math
 import requests
 import gc
 from flask import Flask, request, jsonify
-from insightface.app import FaceAnalysis
+#from insightface.app import FaceAnalysis
 from io import BytesIO
 
 app = Flask(__name__)
@@ -20,13 +20,13 @@ hands = mp_hands.Hands(static_image_mode=True, max_num_hands=2)
 
 # Cargar datos de localidades
 df_localidades = pl.read_csv('localidades.csv')
-
+'''
 def get_face_app():
     """Inicializa FaceAnalysis solo cuando se necesita."""
     app = FaceAnalysis(providers=['CPUExecutionProvider'])
     app.prepare(ctx_id=0)
     return app
-
+'''
 def haversine(lat1, lon1, lat2, lon2):
     R = 6371
     phi1, phi2 = map(math.radians, [lat1, lat2])
@@ -100,7 +100,7 @@ def detect_location():
         "provincia": localidad_cercana[df.columns.index("provincia_nombre")],
         "distancia_km": localidad_cercana[df.columns.index("distancia")]
     })
-
+'''
 def descargar_imagen(url):
     try:
         respuesta = requests.get(url, stream=True, timeout=10)
@@ -139,4 +139,5 @@ def compare_faces():
     similarity = np.dot(emb1, emb2)
     gc.collect()  # Liberar memoria
     return jsonify({"same_person": similarity >= 0.4, "similarity": round(similarity, 4)})
+'''
 
