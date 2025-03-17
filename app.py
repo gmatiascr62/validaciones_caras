@@ -81,6 +81,7 @@ def detect_finger():
     gc.collect()  # Liberar memoria
     return jsonify({"index_finger_up": index_finger_up})
 
+'''
 @app.route('/detect_location', methods=['POST'])
 def detect_location():
     data = request.get_json()
@@ -114,8 +115,8 @@ def detect_location():
     gc.collect()
 
     return respuesta
-
 '''
+
 @app.route('/detect_location', methods=['POST'])
 def detect_location():
     data = request.get_json()
@@ -134,7 +135,7 @@ def detect_location():
         "provincia": localidad_cercana[df.columns.index("provincia_nombre")],
         "distancia_km": localidad_cercana[df.columns.index("distancia")]
     })
-'''
+
 '''
 def descargar_imagen(url):
     try:
