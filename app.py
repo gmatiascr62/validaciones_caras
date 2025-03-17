@@ -50,7 +50,7 @@ def detect_face():
     img_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = face_detection.process(img_rgb)
 
-    detected = any(detection.score[0] >= 0.9 for detection in results.detections) if results.detections else False
+    detected = any(detection.score[0] >= 0.7 for detection in results.detections) if results.detections else False
     
     gc.collect()  # Liberar memoria
     return jsonify({"face_detected": detected})
