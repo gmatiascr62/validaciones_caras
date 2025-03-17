@@ -88,6 +88,41 @@ def detect_location():
         return jsonify({"error": "Se requieren lat y lon"}), 400
 
     lat_usuario, lon_usuario = data['lat'], data['lon']
+    
+    df_filtrado = df_localidades.filter(
+        (df_localidades["centroide_lat"].is_between(lat_usuario - 1.0, lat_usuario + 1.0)) &
+        (df_localidades["centroide_lon"].is_between(lon_usuario - 1.0, lon_usuario + 1.0))
+    )
+
+    df = df_filtrado.with_columns(
+        pl.struct(["centroide_lat", "centroide_lon"]).apply(
+            lambda row: haversine(lat_usuario, lon_usuario, row["centroide_lat"], row["centroide_lon"])
+        ).alias("distancia")
+    )
+
+    localidad_cercana = df.top_k(1, by="distancia", reverse=False).row(0)
+
+    respuesta = jsonify({
+        "localidad": localidad_cercana[df.columns.index("nombre")],
+        "municipio": localidad_cercana[df.columns.index("municipio_nombre")],
+        "provincia": localidad_cercana[df.columns.index("provincia_nombre")],
+        "distancia_km": localidad_cercana[df.columns.index("distancia")]
+    })
+
+    # Liberar memoria
+    del df, df_filtrado, localidad_cercana
+    gc.collect()
+
+    return respuesta
+
+'''
+@app.route('/detect_location', methods=['POST'])
+def detect_location():
+    data = request.get_json()
+    if not data or 'lat' not in data or 'lon' not in data:
+        return jsonify({"error": "Se requieren lat y lon"}), 400
+
+    lat_usuario, lon_usuario = data['lat'], data['lon']
     df = df_localidades.with_columns(
         pl.Series([haversine(lat_usuario, lon_usuario, lat, lon) for lat, lon in zip(df_localidades["centroide_lat"], df_localidades["centroide_lon"])]).alias("distancia")
     )
@@ -99,6 +134,7 @@ def detect_location():
         "provincia": localidad_cercana[df.columns.index("provincia_nombre")],
         "distancia_km": localidad_cercana[df.columns.index("distancia")]
     })
+'''
 '''
 def descargar_imagen(url):
     try:
